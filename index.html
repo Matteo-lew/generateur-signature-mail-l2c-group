@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Générateur de Signature - L2C Group</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
     <style>
@@ -492,8 +492,58 @@
             const logoSrc = LOGOS[data.variant];
             const photoSrc = data.photoUrl || 'data:image/svg+xml;base64,' + btoa('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><circle cx="60" cy="60" r="60" fill="#e1e5e9"/><circle cx="60" cy="45" r="20" fill="#c1c7cd"/><ellipse cx="60" cy="95" rx="35" ry="25" fill="#c1c7cd"/></svg>');
 
+            // Build conditional rows
+            const emailRow = data.email ? `
+                <tr>
+                    <td style="padding:2px 0;line-height:1.4;">
+                        <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
+                            <tr>
+                                <td valign="middle" style="padding-right:8px;width:14px;">
+                                    <i class="fas fa-envelope" style="font-size:12px;color:#032b4f;"></i>
+                                </td>
+                                <td valign="middle">
+                                    <a href="mailto:${data.email}" style="font-size:12px;color:#022b4f;text-decoration:none;font-family:'Poppins',Arial,sans-serif;">${data.email}</a>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>` : '';
+
+            const telRow = data.telephone ? `
+                <tr>
+                    <td style="padding:2px 0;line-height:1.4;">
+                        <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
+                            <tr>
+                                <td valign="middle" style="padding-right:8px;width:14px;">
+                                    <i class="fas fa-phone" style="font-size:12px;color:#032b4f;"></i>
+                                </td>
+                                <td valign="middle">
+                                    <a href="tel:${telClean}" style="font-size:12px;color:#022b4f;text-decoration:none;font-family:'Poppins',Arial,sans-serif;">${data.telephone}</a>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>` : '';
+
+            const adresseRow = data.adresse ? `
+                <tr>
+                    <td style="padding:4px 0;line-height:1.2;">
+                        <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
+                            <tr>
+                                <td valign="middle" style="padding-right:8px;width:14px;">
+                                    <i class="fas fa-map-marker-alt" style="font-size:12px;color:#032b4f;"></i>
+                                </td>
+                                <td valign="middle">
+                                    <span style="font-size:11px;color:#022b4f;font-family:'Poppins',Arial,sans-serif;">${data.adresse}</span>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>` : '';
+
             return `
-<table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;font-family:Arial,sans-serif;">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;font-family:'Poppins',Arial,sans-serif;">
     <tr>
         <td valign="middle" style="padding:0 15px 0 0;width:350px;">
             <img src="${logoSrc}" alt="Logo" width="350" height="186" style="width:350px;height:186px;display:block;border:0;object-fit:contain;" />
@@ -505,29 +555,17 @@
             <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
                 <tr>
                     <td style="padding:0 0 2px 0;line-height:1.2;">
-                        <span style="font-size:18px;font-weight:bold;color:#9013fe;font-family:Arial,sans-serif;">${data.nom}</span>
+                        <span style="font-size:22px;font-weight:bold;color:#032b4f;font-family:'Poppins',Arial,sans-serif;">${data.nom}</span>
                     </td>
                 </tr>
                 <tr>
                     <td style="padding:0 0 10px 0;line-height:1.2;">
-                        <span style="font-size:13px;font-weight:bold;color:#022b4f;font-family:Arial,sans-serif;">${data.titre}</span>
+                        <span style="font-size:13px;font-weight:bold;color:#9013fe;font-family:'Poppins',Arial,sans-serif;">${data.titre}</span>
                     </td>
                 </tr>
-                <tr>
-                    <td style="padding:2px 0;line-height:1.4;">
-                        <span style="font-size:12px;color:#022b4f;font-family:Arial,sans-serif;"><b>Mail.</b>&nbsp;&nbsp;<a href="mailto:${data.email}" style="color:#022b4f;text-decoration:none;">${data.email}</a></span>
-                    </td>
-                </tr>
-                <tr>
-                    <td style="padding:2px 0;line-height:1.4;">
-                        <span style="font-size:12px;color:#022b4f;font-family:Arial,sans-serif;"><b>Tel.</b>&nbsp;&nbsp;<a href="tel:${telClean}" style="color:#022b4f;text-decoration:none;">${data.telephone}</a></span>
-                    </td>
-                </tr>
-                <tr>
-                    <td style="padding:6px 0;line-height:1.2;">
-                        <span style="font-size:11px;color:#022b4f;font-family:Arial,sans-serif;">${data.adresse}</span>
-                    </td>
-                </tr>
+                ${emailRow}
+                ${telRow}
+                ${adresseRow}
                 <tr>
                     <td style="padding:4px 0 0 0;">
                         <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
