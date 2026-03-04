@@ -216,22 +216,22 @@
 
         .signature-container {
             background: white;
-            padding: 40px;
+            padding: 20px;
             border-radius: var(--radius);
             box-shadow: var(--shadow);
             width: 100%;
-            overflow: auto; /* Allow scrolling if huge */
+            overflow: hidden;
             display: flex;
-            justify-content: center;
-            align-items: center;
+            justify-content: flex-start;
+            align-items: flex-start;
             min-height: 200px;
-            /* No fixed max-width to prevent cutting, but constrained by parent padding */
         }
-        
+
         /* The signature wrapper */
         #signature-preview {
-            /* Ensure it doesn't break layout but allows full view */
             display: inline-block;
+            transform-origin: top left;
+            flex-shrink: 0;
         }
 
         /* Copy Button Area */
@@ -454,7 +454,10 @@
         const ICON_INSTAGRAM = "https://cdn.prod.website-files.com/67e2a72cc1cc92a3140cf809/698d9bb93ee5fe119e52291c_icone%20logo%20instagram.png";
         
         const ICON_YOUTUBE = "https://cdn.prod.website-files.com/67e2a72cc1cc92a3140cf809/698d9b0b31ecc25f1550631c_icone%20logo%20ytb.png";
-        
+
+        // Icônes contacts : caractères Unicode — 100 % compatibles Gmail (texte pur, aucune dépendance)
+        const ICON_STYLE = 'font-family:Arial,sans-serif;font-size:13px;color:#032b4f;line-height:1;';
+
         // Elements
         const inputs = document.querySelectorAll('input');
         const preview = document.getElementById('signature-preview');
@@ -499,7 +502,7 @@
                         <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
                             <tr>
                                 <td valign="middle" style="padding-right:8px;width:14px;">
-                                    <i class="fas fa-envelope" style="font-size:12px;color:#032b4f;"></i>
+                                    <span style="${ICON_STYLE}">&#9993;</span>
                                 </td>
                                 <td valign="middle">
                                     <a href="mailto:${data.email}" style="font-size:12px;color:#022b4f;text-decoration:none;font-family:'Poppins',Arial,sans-serif;">${data.email}</a>
@@ -515,7 +518,7 @@
                         <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
                             <tr>
                                 <td valign="middle" style="padding-right:8px;width:14px;">
-                                    <i class="fas fa-phone" style="font-size:12px;color:#032b4f;"></i>
+                                    <span style="${ICON_STYLE}">&#9743;</span>
                                 </td>
                                 <td valign="middle">
                                     <a href="tel:${telClean}" style="font-size:12px;color:#022b4f;text-decoration:none;font-family:'Poppins',Arial,sans-serif;">${data.telephone}</a>
@@ -531,7 +534,7 @@
                         <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
                             <tr>
                                 <td valign="middle" style="padding-right:8px;width:14px;">
-                                    <i class="fas fa-map-marker-alt" style="font-size:12px;color:#032b4f;"></i>
+                                    <span style="${ICON_STYLE}">&#9679;</span>
                                 </td>
                                 <td valign="middle">
                                     <span style="font-size:11px;color:#022b4f;font-family:'Poppins',Arial,sans-serif;">${data.adresse}</span>
@@ -542,7 +545,6 @@
                 </tr>` : '';
 
             return `
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;font-family:'Poppins',Arial,sans-serif;">
     <tr>
         <td valign="middle" style="padding:0 15px 0 0;width:350px;">
@@ -587,6 +589,25 @@
         function updatePreview() {
             const data = getFormValues();
             preview.innerHTML = generateHTML(data);
+            scalePreview();
+        }
+
+        function scalePreview() {
+            const container = document.querySelector('.signature-container');
+            // Réinitialise la transform pour mesurer la taille naturelle
+            preview.style.transform = '';
+            requestAnimationFrame(() => {
+                const available = container.clientWidth - 40; // 20px padding × 2
+                const natural = preview.scrollWidth;
+                if (natural > 0 && available > 0 && natural > available) {
+                    const scale = available / natural;
+                    preview.style.transform = `scale(${scale})`;
+                    // Compense la hauteur (transform ne modifie pas le flux)
+                    container.style.minHeight = (preview.scrollHeight * scale + 40) + 'px';
+                } else {
+                    container.style.minHeight = '';
+                }
+            });
         }
 
         function saveToStorage() {
@@ -622,20 +643,40 @@
         }
 
         // ===== COPY =====
-        function copierSignature() {
+        function showToast() {
+            const toast = document.getElementById("toast");
+            toast.className = "show";
+            setTimeout(() => toast.className = toast.className.replace("show", ""), 3000);
+        }
+
+        async function copierSignature() {
+            const html = preview.innerHTML;
+            // Méthode 1 : ClipboardItem API — copie le HTML brut, indépendamment du scale visuel
+            if (navigator.clipboard && window.ClipboardItem) {
+                try {
+                    const blob = new Blob([html], { type: 'text/html' });
+                    await navigator.clipboard.write([new ClipboardItem({ 'text/html': blob })]);
+                    showToast();
+                    return;
+                } catch (e) { /* fallback ci-dessous */ }
+            }
+            // Méthode 2 (fallback) : élément temporaire non-scalé hors écran
+            const tmp = document.createElement('div');
+            tmp.style.cssText = 'position:fixed;left:-9999px;top:-9999px;';
+            tmp.innerHTML = html;
+            document.body.appendChild(tmp);
             const range = document.createRange();
-            range.selectNode(preview);
+            range.selectNode(tmp);
             window.getSelection().removeAllRanges();
             window.getSelection().addRange(range);
             try {
                 document.execCommand('copy');
-                const toast = document.getElementById("toast");
-                toast.className = "show";
-                setTimeout(() => toast.className = toast.className.replace("show", ""), 3000);
+                showToast();
             } catch (err) {
                 alert('Erreur de copie.');
             }
             window.getSelection().removeAllRanges();
+            document.body.removeChild(tmp);
         }
 
         function resetForm() {
@@ -650,6 +691,7 @@
             updatePreview();
             saveToStorage();
         }));
+        window.addEventListener('resize', scalePreview);
         loadFromStorage();
         updatePreview();
     </script>
